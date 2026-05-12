@@ -1,0 +1,76 @@
+{
+  "name": "codebase-vector-bridge",
+  "displayName": "Codebase Vector — Bridge",
+  "description": "Pair the Codebase Vector workspace with VS Code so prompts and selections flow live between them.",
+  "version": "0.1.0",
+  "publisher": "codebase-vector",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codebaseVector.pair",
+        "title": "Codebase Vector: Pair Workspace"
+      },
+      {
+        "command": "codebaseVector.copyPairToken",
+        "title": "Codebase Vector: Copy Pair Token"
+      },
+      {
+        "command": "codebaseVector.regenerateSession",
+        "title": "Codebase Vector: New Session"
+      }
+    ],
+    "configuration": {
+      "title": "Codebase Vector",
+      "properties": {
+        "codebaseVector.workspaceUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Origin of the Codebase Vector workspace. Used to build pair URLs."
+        },
+        "codebaseVector.defaultAgent": {
+          "type": "string",
+          "enum": ["claude", "codex", "auto"],
+          "default": "auto",
+          "description": "Which CLI to type into the integrated terminal when an agent target arrives."
+        },
+        "codebaseVector.allowedOrigins": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Extra origins (in addition to workspaceUrl + localhost) allowed to connect to the bridge. Each entry is matched as a prefix against the inbound Origin header."
+        },
+        "codebaseVector.idleTimeoutSeconds": {
+          "type": "number",
+          "default": 90,
+          "description": "Disconnect a paired client that hasn't replied to a ping in this many seconds. Set to 0 to disable."
+        },
+        "codebaseVector.relayUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional cross-machine relay base URL (e.g. https://codebase-vector.example.com). When set, the extension also publishes selections/open-file events to the relay so a browser on a different network can pair via 'relay:<sessionId>'."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -p . -w",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,62 +1,81 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ink-0: #ffffff;
+  --color-ink-1: #fafafa;
+  --color-ink-2: #f5f5f5;
+  --color-ink-3: #ebebeb;
+  --color-ink-4: #d4d4d4;
+  --color-ink-5: #a3a3a3;
+  --color-ink-6: #6b6b6b;
+  --color-ink-7: #2a2a2a;
+  --color-ink-8: #0a0a0a;
+
+  /* Aliases — old token names map to ink-N so component code stays put. */
+  --color-bg: #fafafa;
+  --color-bg-elev: #ffffff;
+  --color-fg: #0a0a0a;
+  --color-muted: #6b6b6b;
+  --color-border: #ebebeb;
+  --color-accent: #0a0a0a;
+
+  /* Language palette — still semantic (color carries signal per §9). */
+  --color-lang-typescript: #3178C6;
+  --color-lang-javascript: #F7DF1E;
+  --color-lang-python: #3776AB;
+  --color-lang-go: #00ADD8;
+  --color-lang-rust: #CE422B;
+  --color-lang-java: #E76F00;
+  --color-lang-ruby: #CC342D;
+  --color-lang-markdown: #6B7280;
+  --color-lang-json: #9CA3AF;
+  --color-lang-yaml: #9CA3AF;
+  --color-lang-other: #9CA3AF;
+
+  /* Hotspot encoding — still semantic. */
+  --color-hot-1: #FBBF24;
+  --color-hot-2: #F59E0B;
+  --color-hot-3: #EF4444;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono", monospace;
+}
+
 html, body {
   margin: 0;
   padding: 0;
-  background: #020309;
-  color: #fff;
+  background: var(--color-ink-0);
+  color: var(--color-ink-8);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Tight uppercase mono section label — used throughout the chrome. */
+.label-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-5);
+}
+
+/* React Flow overrides — keep the canvas calm under chrome, sketchy on map. */
+.react-flow__attribution { display: none; }
+
+.react-flow__edge-path {
+  stroke: var(--color-ink-4);
+}
+
+.react-flow__node {
+  font-family: var(--font-sans);
 }
 
 @keyframes canvasFadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes titleShimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-@keyframes ringPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-}
-
-.viz-title {
-  background: linear-gradient(110deg, #ffffff 0%, #d8b4fe 25%, #a5b4fc 50%, #67e8f9 75%, #ffffff 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: titleShimmer 8s ease-in-out infinite;
-}
-
-.noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.035;
-  mix-blend-mode: overlay;
-}
-
-.corner-mark {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-}
-.corner-mark::before,
-.corner-mark::after {
-  content: '';
-  position: absolute;
-  background: rgba(255, 255, 255, 0.35);
-}
-.corner-mark::before {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-}
-.corner-mark::after {
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 100%;
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
