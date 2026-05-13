@@ -11,3 +11,13 @@ services:
       - /app/mastra/node_modules
     environment:
       - MASTRA_HOST=0.0.0.0
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
