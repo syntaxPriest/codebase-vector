@@ -6,15 +6,15 @@ Visualize and explore codebases through an interactive dependency graph.
 
 - **Frontend** — Next.js 15, React 19, Tailwind CSS 4, xyflow (node graph)
 - **Backend** — Mastra agent framework, OpenAI (codebase analysis)
-- **Container** — Docker Compose (dev mode with live reload)
-
 ## Dev
 
+Requires Node 22+.
+
 ```bash
-docker compose up --build
+./dev.sh
 ```
 
 - Frontend: http://localhost:3000
-- Backend (Mastra Studio): http://localhost:4112
+- Backend (Mastra Studio): http://localhost:4111
 
-File changes in `frontend/` or `backend/mastra/` auto-reload.
+File changes in `frontend/` or `backend/mastra/` auto-reload. Ctrl+C stops both.
