@@ -3,9 +3,11 @@ services:
     build:
       context: ./backend
     ports:
-      - "4111:4111"
+      - "4112:4111"
     env_file:
       - ./backend/mastra/.env
+    volumes:
+      - ./backend/mastra:/app/mastra
+      - /app/mastra/node_modules
     environment:
-      - HOST=0.0.0.0
-      - OPENAI_API_KEY
+      - MASTRA_HOST=0.0.0.0
