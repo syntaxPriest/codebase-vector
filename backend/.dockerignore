@@ -1,0 +1,9 @@
+node_modules
+.mastra
+dist
+.env
+.env.development
+*.db
+*.db-*
+.DS_Store
+.git

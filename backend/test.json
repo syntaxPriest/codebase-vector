@@ -1,0 +1,9 @@
+[
+  {
+    "filePath": "test",
+    "exports": [],
+    "imports": ["fileA.functionA", "fileB.functionB"],
+    "content": "file content here",
+    "description": "file description here"
+  }
+]

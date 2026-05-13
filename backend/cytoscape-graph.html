@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cytoscape Graph Visualization</title>
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      background: #f8f9fa;
+      padding: 20px 40px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    select,
+    button {
+      padding: 10px 16px;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    select:focus,
+    button:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      font-weight: 600;
+      padding: 10px 24px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .main-content {
+      display: flex;
+      min-height: 600px;
+    }
+
+    #cy {
+      flex: 1;
+      min-height: 600px;
+      border-right: 1px solid #e9ecef;
+    }
+
+    .sidebar {
+      width: 350px;
+      padding: 30px;
+      background: #f8f9fa;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      color: #495057;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .stats {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f3f5;
+    }
+
+    .stat-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: #868e96;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      color: #495057;
+      font-weight: 600;
+    }
+
+    .element-info {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .element-info h3 {
+      color: #495057;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .element-details {
+      color: #868e96;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .element-details strong {
+      color: #495057;
+    }
+
+    .color-legend {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .color-legend h3 {
+      color: #495057;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      color: #495057;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    footer {
+      background: #f8f9fa;
+      padding: 20px 40px;
+      text-align: center;
+      color: #868e96;
+      font-size: 14px;
+      border-top: 1px solid #e9ecef;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        flex-direction: column;
+      }
+
+      #cy {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+        min-height: 500px;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Codebase Graph Visualization</h1>
+      <div class="subtitle">Interactive dependency graph powered by Cytoscape.js</div>
+    </header>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="layout">Layout:</label>
+        <select id="layout">
+          <option value="breadthfirst" selected>Breadth-First</option>
+          <option value="cose">Force-Directed (CoSE)</option>
+          <option value="circle">Circle</option>
+          <option value="grid">Grid</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="nodeSize">Node Size:</label>
+        <select id="nodeSize">
+          <option value="degree">By Connections</option>
+          <option value="fixed">Fixed Size</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="edgeStyle">Edge Style:</label>
+        <select id="edgeStyle">
+          <option value="bezier">Curved</option>
+          <option value="straight">Straight</option>
+        </select>
+      </div>
+
+      <button id="resetView">Reset View</button>
+      <button id="exportBtn">Export PNG</button>
+    </div>
+
+    <div class="main-content">
+      <div id="cy"></div>
+
+      <div class="sidebar">
+        <div class="stats">
+          <h2>Graph Statistics</h2>
+          <div class="stat-item">
+            <span class="stat-label">Total Nodes:</span>
+            <span class="stat-value" id="nodeCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Edges:</span>
+            <span class="stat-value" id="edgeCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Selected Element:</span>
+            <span class="stat-value" id="selectedElement">None</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Graph Density:</span>
+            <span class="stat-value" id="graphDensity">0.00</span>
+          </div>
+        </div>
+
+        <div class="element-info">
+          <h3 id="elementInfoTitle">Element Information</h3>
+          <div class="element-details" id="elementDetails">
+            Click on a node or edge to see details...
+          </div>
+        </div>
+
+        <div class="color-legend">
+          <h3>Color Legend (Common File Types)</h3>
+          <div class="legend-items">
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #667eea;"></span>
+              <span class="legend-label">TypeScript (.ts/.tsx)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #48bb78;"></span>
+              <span class="legend-label">JavaScript (.js/.jsx)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #3776ab;"></span>
+              <span class="legend-label">Python (.py)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #007396;"></span>
+              <span class="legend-label">Java (.java)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #00599c;"></span>
+              <span class="legend-label">C++ (.cpp)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #68217a;"></span>
+              <span class="legend-label">C# (.cs)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #00add8;"></span>
+              <span class="legend-label">Go (.go)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #e34c26;"></span>
+              <span class="legend-label">HTML (.html)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #1572b6;"></span>
+              <span class="legend-label">CSS (.css)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #f7df1e;"></span>
+              <span class="legend-label">JSON (.json)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #cb171e;"></span>
+              <span class="legend-label">YAML (.yaml/.yml)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #083fa1;"></span>
+              <span class="legend-label">Markdown (.md)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #336791;"></span>
+              <span class="legend-label">SQL (.sql)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background-color: #718096;"></span>
+              <span class="legend-label">Other/Unknown</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Powered by Cytoscape.js • Graph data generated from codebase analysis</p>
+    </footer>
+  </div>
+
+  <script>
+    // Utility function to darken a color (supports CSS color names and hex)
+    function darkenColor(color) {
+      // If it's a CSS color name, convert to hex first
+      const colorMap = {
+        'blue': '#0000ff', 'royalblue': '#4169e1', 'steelblue': '#4682b4', 'dodgerblue': '#1e90ff',
+        'green': '#008000', 'limegreen': '#32cd32', 'forestgreen': '#228b22', 'seagreen': '#2e8b57',
+        'purple': '#800080', 'mediumpurple': '#9370db', 'darkorchid': '#9932cc', 'rebeccapurple': '#663399',
+        'orange': '#ffa500', 'darkorange': '#ff8c00', 'coral': '#ff7f50', 'tomato': '#ff6347',
+        'gray': '#808080', 'darkgray': '#a9a9a9', 'slategray': '#708090', 'dimgray': '#696969'
+      };
+
+      let hexColor = colorMap[color.toLowerCase()] || color;
+
+      // If it's already hex, darken it
+      if (hexColor.startsWith('#')) {
+        // Simple darkening by reducing RGB values
+        const r = Math.max(0, parseInt(hexColor.slice(1, 3), 16) - 40);
+        const g = Math.max(0, parseInt(hexColor.slice(3, 5), 16) - 40);
+        const b = Math.max(0, parseInt(hexColor.slice(5, 7), 16) - 40);
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      }
+
+      // Fallback: add 'dark' prefix for CSS color names
+      return `dark${color}`;
+    }
+
+    // Sample graph data (replace with actual data from your agent)
+    const sampleGraphData = {
+      "nodes": [
+        {
+          "data": {
+            "id": "mastra/index.ts",
+            "label": "mastra (index)",
+            "description": "Application entry/orchestrator that wires agents and config and receives the initial invoke request.",
+            "type": "file",
+            "memberCount": 1,
+            "members": [
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/mastra/index.ts"
+            ],
+            "size": 110,
+            "color": "orange"
+          }
+        },
+        {
+          "data": {
+            "id": "superAgent",
+            "label": "superAgent (dispatcher)",
+            "description": "Dispatcher exported by mastra that resolves which domain agent to invoke and performs input validation/routing.",
+            "type": "function",
+            "memberCount": 1,
+            "members": [
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/mastra/agents/supervisor.agent.ts"
+            ],
+            "size": 100,
+            "color": "orange"
+          }
+        },
+        {
+          "data": {
+            "id": "agent:flight",
+            "label": "flight.agent",
+            "description": "Example domain agent that implements business logic for flight-related requests (represents a target agent invocation).",
+            "type": "file",
+            "memberCount": 1,
+            "members": [
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/mastra/agents/flight.agent.ts"
+            ],
+            "size": 90,
+            "color": "orange"
+          }
+        },
+        {
+          "data": {
+            "id": "config",
+            "label": "config (Store & VectorStore)",
+            "description": "Configuration module exposing Store and VectorStore bindings used by agents.",
+            "type": "group",
+            "memberCount": 2,
+            "members": [
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/config/store.config.ts",
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/config/vector.config.ts"
+            ],
+            "size": 120,
+            "color": "purple"
+          }
+        },
+        {
+          "data": {
+            "id": "mcp-client:browserUse",
+            "label": "browser-use.client",
+            "description": "External MCP client used by agents to interact with external services (browser-use client).",
+            "type": "file",
+            "memberCount": 1,
+            "members": [
+              "/Users/talibackend/Desktop/Projects/brim-PA-backend/mastra/src/mastra/mcp-clients/browser-use.client.ts"
+            ],
+            "size": 100,
+            "color": "blue"
+          }
+        },
+        {
+          "data": {
+            "id": "action:vectorQuery",
+            "label": "Vector store query",
+            "description": "Runtime action where the agent queries the VectorStore for contextual embeddings/records.",
+            "type": "action",
+            "memberCount": 0,
+            "members": [],
+            "size": 60,
+            "color": "lightgreen"
+          }
+        },
+        {
+          "data": {
+            "id": "action:externalMCPCall",
+            "label": "External MCP call",
+            "description": "Runtime action where the agent calls the external MCP service via browserUseClient.",
+            "type": "action",
+            "memberCount": 0,
+            "members": [],
+            "size": 60,
+            "color": "lightblue"
+          }
+        },
+        {
+          "data": {
+            "id": "action:persistResult",
+            "label": "Persist result to Store",
+            "description": "Runtime action persisting computation/result/state to the configured Store.",
+            "type": "action",
+            "memberCount": 0,
+            "members": [],
+            "size": 60,
+            "color": "pink"
+          }
+        },
+        {
+          "data": {
+            "id": "action:returnResponse",
+            "label": "Return response",
+            "description": "Final step returning the agent's response back to the caller (mastra / client).",
+            "type": "action",
+            "memberCount": 0,
+            "members": [],
+            "size": 50,
+            "color": "gray"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "data": {
+            "id": "mastra_calls_superAgent",
+            "source": "mastra/index.ts",
+            "target": "superAgent",
+            "type": "contains",
+            "label": "mastra initializes/calls superAgent",
+            "importCount": 1,
+            "importedProperties": [
+              "superAgent"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "superAgent_dispatches_to_agent",
+            "source": "superAgent",
+            "target": "agent:flight",
+            "type": "contains",
+            "label": "dispatches to target domain agent based on request",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        },
+        {
+          "data": {
+            "id": "agent_imports_config",
+            "source": "agent:flight",
+            "target": "config",
+            "type": "imports",
+            "label": "agent uses Store and VectorStore bindings",
+            "importCount": 2,
+            "importedProperties": [
+              "Store",
+              "VectorStore"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "agent_imports_mcp_client",
+            "source": "agent:flight",
+            "target": "mcp-client:browserUse",
+            "type": "imports",
+            "label": "agent calls external services via browserUseClient",
+            "importCount": 1,
+            "importedProperties": [
+              "browserUseClient"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "agent_to_vectorQuery",
+            "source": "agent:flight",
+            "target": "action:vectorQuery",
+            "type": "contains",
+            "label": "agent -> perform vector store query for context",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        },
+        {
+          "data": {
+            "id": "vectorQuery_to_config",
+            "source": "action:vectorQuery",
+            "target": "config",
+            "type": "contains",
+            "label": "vectorQuery -> uses VectorStore from config",
+            "importCount": 0,
+            "importedProperties": [
+              "VectorStore"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "agent_to_externalMCPCall",
+            "source": "agent:flight",
+            "target": "action:externalMCPCall",
+            "type": "contains",
+            "label": "agent -> invoke external MCP call",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        },
+        {
+          "data": {
+            "id": "externalMCPCall_to_mcpClient",
+            "source": "action:externalMCPCall",
+            "target": "mcp-client:browserUse",
+            "type": "contains",
+            "label": "external call -> executed by browserUse client",
+            "importCount": 0,
+            "importedProperties": [
+              "browserUseClient"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "agent_to_persistResult",
+            "source": "agent:flight",
+            "target": "action:persistResult",
+            "type": "contains",
+            "label": "agent -> persist results/state",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        },
+        {
+          "data": {
+            "id": "persistResult_to_config",
+            "source": "action:persistResult",
+            "target": "config",
+            "type": "contains",
+            "label": "persistResult -> uses Store from config",
+            "importCount": 0,
+            "importedProperties": [
+              "Store"
+            ]
+          }
+        },
+        {
+          "data": {
+            "id": "agent_to_returnResponse",
+            "source": "agent:flight",
+            "target": "action:returnResponse",
+            "type": "contains",
+            "label": "agent -> produce final response",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        },
+        {
+          "data": {
+            "id": "returnResponse_to_mastra",
+            "source": "action:returnResponse",
+            "target": "mastra/index.ts",
+            "type": "contains",
+            "label": "response returned to mastra/original caller",
+            "importCount": 0,
+            "importedProperties": []
+          }
+        }
+      ],
+      "summary": "Execution flow: mastra (index) receives the invoke → calls exported superAgent dispatcher → superAgent resolves and dispatches to the target domain agent (example: flight.agent) → agent imports and uses config bindings (Store, VectorStore) and mcp client (browserUseClient) → runtime actions: vector store query (VectorStore), external MCP call (browserUseClient), persist results to Store → agent constructs final response → response returned back to mastra/caller. Edges reflect module imports (agent→config, agent→mcp-client) and runtime containment/flow between orchestration and action steps."
+    }
+
+    // Initialize Cytoscape
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: sampleGraphData,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': function (ele) {
+              // First check if node has explicit color property
+              const nodeColor = ele.data('color');
+              if (nodeColor) {
+                return nodeColor;
+              }
+
+              // Fall back to file extension coloring for non-group nodes
+              const filePath = ele.data('filePath') || '';
+              const extension = filePath.toLowerCase();
+
+              // JavaScript/TypeScript family
+              if (extension.endsWith('.ts') || extension.endsWith('.tsx')) return '#667eea';
+              if (extension.endsWith('.js') || extension.endsWith('.jsx')) return '#48bb78';
+              if (extension.endsWith('.mjs') || extension.endsWith('.cjs')) return '#38a169';
+
+              // Python
+              if (extension.endsWith('.py') || extension.endsWith('.pyw')) return '#3776ab';
+
+              // Java
+              if (extension.endsWith('.java')) return '#007396';
+
+              // C/C++
+              if (extension.endsWith('.c')) return '#555555';
+              if (extension.endsWith('.cpp') || extension.endsWith('.cc') || extension.endsWith('.cxx')) return '#00599c';
+              if (extension.endsWith('.h') || extension.endsWith('.hpp')) return '#6495ed';
+
+              // C#
+              if (extension.endsWith('.cs')) return '#68217a';
+
+              // Go
+              if (extension.endsWith('.go')) return '#00add8';
+
+              // Rust
+              if (extension.endsWith('.rs')) return '#dea584';
+
+              // Ruby
+              if (extension.endsWith('.rb')) return '#cc342d';
+
+              // PHP
+              if (extension.endsWith('.php')) return '#777bb4';
+
+              // Swift
+              if (extension.endsWith('.swift')) return '#fa7343';
+
+              // Kotlin
+              if (extension.endsWith('.kt') || extension.endsWith('.kts')) return '#7f52ff';
+
+              // Dart
+              if (extension.endsWith('.dart')) return '#0175c2';
+
+              // Scala
+              if (extension.endsWith('.scala')) return '#dc322f';
+
+              // Haskell
+              if (extension.endsWith('.hs')) return '#5e5086';
+
+              // Elixir
+              if (extension.endsWith('.ex') || extension.endsWith('.exs')) return '#6e4a7e';
+
+              // Clojure
+              if (extension.endsWith('.clj') || extension.endsWith('.cljs')) return '#5881d8';
+
+              // Lua
+              if (extension.endsWith('.lua')) return '#000080';
+
+              // Shell/Bash
+              if (extension.endsWith('.sh') || extension.endsWith('.bash')) return '#4eaa25';
+
+              // PowerShell
+              if (extension.endsWith('.ps1')) return '#012456';
+
+              // R
+              if (extension.endsWith('.r')) return '#276dc3';
+
+              // MATLAB
+              if (extension.endsWith('.m')) return '#0076a8';
+
+              // Perl
+              if (extension.endsWith('.pl') || extension.endsWith('.pm')) return '#0098d6';
+
+              // Groovy
+              if (extension.endsWith('.groovy')) return '#4298b8';
+
+              // Web technologies
+              if (extension.endsWith('.html') || extension.endsWith('.htm')) return '#e34c26';
+              if (extension.endsWith('.css')) return '#1572b6';
+              if (extension.endsWith('.scss') || extension.endsWith('.sass')) return '#c6538c';
+              if (extension.endsWith('.less')) return '#1d365d';
+
+              // Configuration/data files
+              if (extension.endsWith('.json')) return '#f7df1e';
+              if (extension.endsWith('.yaml') || extension.endsWith('.yml')) return '#cb171e';
+              if (extension.endsWith('.toml')) return '#9c4221';
+              if (extension.endsWith('.xml')) return '#0060ac';
+              if (extension.endsWith('.ini') || extension.endsWith('.cfg') || extension.endsWith('.conf')) return '#6c757d';
+
+              // Documentation
+              if (extension.endsWith('.md') || extension.endsWith('.markdown')) return '#083fa1';
+              if (extension.endsWith('.txt')) return '#6c757d';
+
+              // SQL
+              if (extension.endsWith('.sql')) return '#336791';
+
+              // GraphQL
+              if (extension.endsWith('.graphql') || extension.endsWith('.gql')) return '#e10098';
+
+              // Docker
+              if (extension.endsWith('.dockerfile') || filePath.endsWith('Dockerfile')) return '#2496ed';
+
+              // Makefile
+              if (extension.endsWith('makefile') || extension.endsWith('.mk') || extension.endsWith('.make')) return '#6e4a7e';
+
+              // Project files
+              if (extension.endsWith('.csproj') || extension.endsWith('.vbproj')) return '#512bd4';
+              if (extension.endsWith('.sln')) return '#68217a';
+              if (extension.endsWith('.csproj') || extension.endsWith('.vbproj')) return '#512bd4';
+              if (extension.endsWith('.sln')) return '#68217a';
+
+              // Other common extensions
+              if (extension.endsWith('.vue')) return '#42b883';
+              if (extension.endsWith('.svelte')) return '#ff3e00';
+              if (extension.endsWith('.elm')) return '#60b5cc';
+              if (extension.endsWith('.purs')) return '#1d222d';
+              if (extension.endsWith('.coffee')) return '#244776';
+              if (extension.endsWith('.litcoffee')) return '#244776';
+              if (extension.endsWith('.jl')) return '#a270ba';
+              if (extension.endsWith('.f') || extension.endsWith('.for') || extension.endsWith('.f90')) return '#734f96';
+              if (extension.endsWith('.ada') || extension.endsWith('.adb') || extension.endsWith('.ads')) return '#02f88c';
+              if (extension.endsWith('.asm')) return '#6e4c13';
+              if (extension.endsWith('.pas') || extension.endsWith('.pp')) return '#b0ce4e';
+              if (extension.endsWith('.v') || extension.endsWith('.vh') || extension.endsWith('.sv')) return '#659ad2';
+              if (extension.endsWith('.tex')) return '#3d6117';
+              if (extension.endsWith('.rst')) return '#358a5b';
+              if (extension.endsWith('.adoc') || extension.endsWith('.asciidoc')) return '#5a5a5a';
+              if (extension.endsWith('.csv')) return '#237346';
+              if (extension.endsWith('.tsv')) return '#237346';
+              if (extension.endsWith('.lock')) return '#718096';
+              if (extension.endsWith('.log')) return '#718096';
+              if (extension.endsWith('.tmp')) return '#718096';
+              if (extension.endsWith('.bak')) return '#718096';
+
+              // Default color for unknown extensions
+              return '#718096';
+            },
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'white',
+            'font-size': '1.2em',
+            'font-weight': '600',
+            'text-max-width': function (ele) { return ele.data('size') || 30; },
+            'text-wrap': 'wrap',
+            'text-overflow-wrap': 'anywhere',
+            'width': function (ele) { return ele.data('size') || 30; },
+            'height': function (ele) { return ele.data('size') || 30; },
+            'border-width': 2,
+            'border-color': 'white'
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': function (ele) {
+              const sourceNode = ele.source();
+              return sourceNode.data('color') || '#cbd5e0';
+            },
+            'target-arrow-color': function (ele) {
+              const sourceNode = ele.source();
+              return sourceNode.data('color') || '#cbd5e0';
+            },
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'unbundled-bezier',
+            'control-point-step-size': 50,
+            'control-point-distance': 60,
+            'control-point-weight': 0.5,
+            'label': 'data(label)',
+            'font-size': '1.2em',
+            'color': function (ele) {
+              const sourceNode = ele.source();
+              return sourceNode.data('color') || '#718096';
+            },
+            'text-background-color': 'white',
+            'text-background-opacity': 0.8,
+            'text-background-padding': '3px'
+          }
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'width': 4,
+            'line-color': '#f56565',
+            'target-arrow-color': '#f56565',
+            'color': '#f56565',
+            'z-index': 9999
+          }
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            'border-width': 4,
+            'border-color': '#f56565',
+            'background-color': function (ele) {
+              // First check if node has explicit color property
+              const nodeColor = ele.data('color');
+              if (nodeColor) {
+                // Return darker version of the color for selected state
+                return darkenColor(nodeColor);
+              }
+
+              // Fall back to file extension coloring
+              const filePath = ele.data('filePath') || '';
+              const extension = filePath.toLowerCase();
+
+              // JavaScript/TypeScript family
+              if (extension.endsWith('.ts') || extension.endsWith('.tsx')) return '#553c9a';
+              if (extension.endsWith('.js') || extension.endsWith('.jsx')) return '#2f855a';
+              if (extension.endsWith('.mjs') || extension.endsWith('.cjs')) return '#276749';
+
+              // Python
+              if (extension.endsWith('.py') || extension.endsWith('.pyw')) return '#2c5f8a';
+
+              // Java
+              if (extension.endsWith('.java')) return '#005a7a';
+
+              // C/C++
+              if (extension.endsWith('.c')) return '#333333';
+              if (extension.endsWith('.cpp') || extension.endsWith('.cc') || extension.endsWith('.cxx')) return '#004a7a';
+              if (extension.endsWith('.h') || extension.endsWith('.hpp')) return '#4a7aed';
+
+              // C#
+              if (extension.endsWith('.cs')) return '#4a1862';
+
+              // Go
+              if (extension.endsWith('.go')) return '#0087b0';
+
+              // Rust
+              if (extension.endsWith('.rs')) return '#b87c5a';
+
+              // Ruby
+              if (extension.endsWith('.rb')) return '#9c2821';
+
+              // PHP
+              if (extension.endsWith('.php')) return '#5d5f8a';
+
+              // Swift
+              if (extension.endsWith('.swift')) return '#c85a33';
+
+              // Kotlin
+              if (extension.endsWith('.kt') || extension.endsWith('.kts')) return '#5f3ac7';
+
+              // Dart
+              if (extension.endsWith('.dart')) return '#015d9a';
+
+              // Scala
+              if (extension.endsWith('.scala')) return '#a8251f';
+
+              // Haskell
+              if (extension.endsWith('.hs')) return '#453866';
+
+              // Elixir
+              if (extension.endsWith('.ex') || extension.endsWith('.exs')) return '#52385e';
+
+              // Clojure
+              if (extension.endsWith('.clj') || extension.endsWith('.cljs')) return '#3d61a0';
+
+              // Lua
+              if (extension.endsWith('.lua')) return '#000060';
+
+              // Shell/Bash
+              if (extension.endsWith('.sh') || extension.endsWith('.bash')) return '#3a7a1d';
+
+              // PowerShell
+              if (extension.endsWith('.ps1')) return '#011c40';
+
+              // R
+              if (extension.endsWith('.r')) return '#1c5593';
+
+              // MATLAB
+              if (extension.endsWith('.m')) return '#005a88';
+
+              // Perl
+              if (extension.endsWith('.pl') || extension.endsWith('.pm')) return '#0078a6';
+
+              // Groovy
+              if (extension.endsWith('.groovy')) return '#2d7898';
+
+              // Web technologies
+              if (extension.endsWith('.html') || extension.endsWith('.htm')) return '#b33c1e';
+              if (extension.endsWith('.css')) return '#0f5a96';
+              if (extension.endsWith('.scss') || extension.endsWith('.sass')) return '#9c3a6c';
+              if (extension.endsWith('.less')) return '#142a4d';
+
+              // Configuration/data files
+              if (extension.endsWith('.json')) return '#c0af1a';
+              if (extension.endsWith('.yaml') || extension.endsWith('.yml')) return '#9b1218';
+              if (extension.endsWith('.toml')) return '#7c3419';
+              if (extension.endsWith('.xml')) return '#004a8c';
+              if (extension.endsWith('.ini') || extension.endsWith('.cfg') || extension.endsWith('.conf')) return '#495057';
+
+              // Documentation
+              if (extension.endsWith('.md') || extension.endsWith('.markdown')) return '#062f81';
+              if (extension.endsWith('.txt')) return '#495057';
+
+              // SQL
+              if (extension.endsWith('.sql')) return '#1a4d71';
+
+              // GraphQL
+              if (extension.endsWith('.graphql') || extension.endsWith('.gql')) return '#b10078';
+
+              // Docker
+              if (extension.endsWith('.dockerfile') || filePath.endsWith('Dockerfile')) return '#1a7acd';
+
+              // Makefile
+              if (extension.endsWith('makefile') || extension.endsWith('.mk') || extension.endsWith('.make')) return '#52385e';
+
+              // Project files
+              if (extension.endsWith('.csproj') || extension.endsWith('.vbproj')) return '#3a1fa4';
+              if (extension.endsWith('.sln')) return '#4a1862';
+
+              // Other common extensions
+              if (extension.endsWith('.vue')) return '#329c6b';
+              if (extension.endsWith('.svelte')) return '#cc3200';
+              if (extension.endsWith('.elm')) return '#4a95ac';
+              if (extension.endsWith('.purs')) return '#0f1219';
+              if (extension.endsWith('.coffee')) return '#1c3756';
+              if (extension.endsWith('.litcoffee')) return '#1c3756';
+              if (extension.endsWith('.jl')) return '#8250a0';
+              if (extension.endsWith('.f') || extension.endsWith('.for') || extension.endsWith('.f90')) return '#5a3f76';
+              if (extension.endsWith('.ada') || extension.endsWith('.adb') || extension.endsWith('.ads')) return '#02c874';
+              if (extension.endsWith('.asm')) return '#553c0f';
+              if (extension.endsWith('.pas') || extension.endsWith('.pp')) return '#90ae3e';
+              if (extension.endsWith('.v') || extension.endsWith('.vh') || extension.endsWith('.sv')) return '#4d7ab2';
+              if (extension.endsWith('.tex')) return '#2d4a11';
+              if (extension.endsWith('.rst')) return '#2a7a4b';
+              if (extension.endsWith('.adoc') || extension.endsWith('.asciidoc')) return '#3a3a3a';
+              if (extension.endsWith('.csv')) return '#1b5a36';
+              if (extension.endsWith('.tsv')) return '#1b5a36';
+              if (extension.endsWith('.lock')) return '#495057';
+              if (extension.endsWith('.log')) return '#495057';
+              if (extension.endsWith('.tmp')) return '#495057';
+              if (extension.endsWith('.bak')) return '#495057';
+
+              // Default darker color for unknown extensions
+              return '#4a5568';
+            }
+          }
+        }
+      ],
+      //  layout: {
+      //   name: 'breadthfirst',
+      //   padding: 50,
+      //   animate: true,
+      //   animationDuration: 1000,
+      //   fit: true,
+      //   directed: true,
+      //   roots: '#core', // Start from core node if it exists
+      //   circle: false,
+      //   grid: false,
+      //   spacingFactor: 1.5
+      // }
+      layout: {
+        name: 'breadthfirst',
+        fit: true, // whether to fit the viewport to the graph
+        directed: false, // whether the tree is directed downwards (or edges can point in any direction if false)
+        direction: 'downward', // determines the direction in which the tree structure is drawn.  The possible values are 'downward', 'upward', 'rightward', or 'leftward'.
+        padding: 30, // padding on fit
+        circle: false, // put depths in concentric circles if true, put depths top down if false
+        grid: false, // whether to create an even grid into which the DAG is placed (circle:false only)
+        spacingFactor: 1.75, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
+        boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+        avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+        nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
+        roots: undefined, // the roots of the trees
+        depthSort: undefined, // a sorting function to order nodes at equal depth. e.g. function(a, b){ return a.data('weight') - b.data('weight') }
+        animate: false, // whether to transition the node positions
+        animationDuration: 500, // duration of animation in ms if enabled
+        animationEasing: undefined, // easing of animation if enabled,
+        animateFilter: function (node, i) { return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
+        ready: undefined, // callback on layoutready
+        stop: undefined, // callback on layoutstop
+        transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts
+      }
+    });
+
+    // Update statistics
+    function updateStatistics() {
+      document.getElementById('nodeCount').textContent = cy.nodes().length;
+      document.getElementById('edgeCount').textContent = cy.edges().length;
+
+      const totalNodes = cy.nodes().length;
+      const totalEdges = cy.edges().length;
+      const maxEdges = totalNodes * (totalNodes - 1);
+      const density = maxEdges > 0 ? (totalEdges / maxEdges).toFixed(3) : '0.000';
+      document.getElementById('graphDensity').textContent = density;
+    }
+
+    // Edge click handler
+    cy.on('tap', 'edge', function (evt) {
+      const edge = evt.target;
+      cy.elements().unselect();
+      edge.select();
+      document.getElementById('selectedElement').textContent = `Edge: ${edge.data('source')} → ${edge.data('target')}`;
+      document.getElementById('elementInfoTitle').textContent = 'Edge Import Data';
+
+      const sourceNode = edge.source();
+      const targetNode = edge.target();
+      const importCount = edge.data('importCount') || 0;
+      const importedProperties = edge.data('importedProperties') || [];
+      const edgeType = edge.data('type') || 'imports';
+      const edgeLabel = edge.data('label') || '';
+
+      // Function to format imported properties list
+      function formatImportedProperties(properties) {
+        if (!properties || properties.length === 0) {
+          return '<p><em>No specific imports listed</em></p>';
+        }
+
+        return `
+          <ul style="margin-top: 5px; margin-bottom: 15px; padding-left: 20px;">
+            ${properties.map(prop => `
+              <li style="margin-bottom: 3px; font-size: 12px;">
+                <code style="background: #f1f3f5; padding: 2px 6px; border-radius: 3px;">${prop}</code>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      }
+
+      const details = `
+        <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef;">
+          <p><strong>Connection:</strong> ${sourceNode.data('label')} → ${targetNode.data('label')}</p>
+          <p><strong>Edge Type:</strong> ${edgeType}</p>
+          <p><strong>Import Count:</strong> ${importCount}</p>
+          <p><strong>Edge Label:</strong> ${edgeLabel}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p><strong>Source Node:</strong> ${sourceNode.data('label')}</p>
+          <p><strong>Source ID:</strong> ${sourceNode.data('id')}</p>
+          <p><strong>Source Type:</strong> ${sourceNode.data('type')}</p>
+          <p><strong>Source Members:</strong> ${sourceNode.data('memberCount') || 'N/A'}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p><strong>Target Node:</strong> ${targetNode.data('label')}</p>
+          <p><strong>Target ID:</strong> ${targetNode.data('id')}</p>
+          <p><strong>Target Type:</strong> ${targetNode.data('type')}</p>
+          <p><strong>Target Members:</strong> ${targetNode.data('memberCount') || 'N/A'}</p>
+        </div>
+        
+        <div>
+          <p><strong>Imported Properties (${importedProperties.length}):</strong></p>
+          ${formatImportedProperties(importedProperties)}
+        </div>
+      `;
+      document.getElementById('elementDetails').innerHTML = details;
+    });
+
+    // Node click handler
+    cy.on('tap', 'node', function (evt) {
+      const node = evt.target;
+      cy.elements().unselect();
+      node.select();
+      document.getElementById('selectedElement').textContent = `Node: ${node.data('label')}`;
+      document.getElementById('elementInfoTitle').textContent = 'Node Information';
+
+      const members = node.data('members');
+      const memberCount = node.data('memberCount') || (members ? members.length : 0);
+      const description = node.data('description') || 'No description';
+
+      // Function to find common root path and trim it
+      function trimCommonRoot(paths) {
+        if (!paths || paths.length === 0) return paths;
+
+        // Find common directory prefix
+        const splitPaths = paths.map(p => p.split('/'));
+        let commonPrefix = [];
+
+        for (let i = 0; i < splitPaths[0].length; i++) {
+          const segment = splitPaths[0][i];
+          if (splitPaths.every(path => path[i] === segment)) {
+            commonPrefix.push(segment);
+          } else {
+            break;
+          }
+        }
+
+        // If we have a common prefix, trim it
+        if (commonPrefix.length > 0) {
+          const prefix = commonPrefix.join('/') + '/';
+          return paths.map(p => p.startsWith(prefix) ? p.substring(prefix.length) : p);
+        }
+
+        return paths;
+      }
+
+      // Function to get filename from path
+      function getFilename(path) {
+        return path.split('/').pop();
+      }
+
+      let membersHtml = '';
+      if (members && Array.isArray(members) && members.length > 0) {
+        const trimmedMembers = trimCommonRoot(members);
+
+        membersHtml = `
+           <p><strong>Members (${memberCount}):</strong></p>
+            <ul style="margin-top: 5px; margin-bottom: 15px; padding-left: 20px;">
+             ${trimmedMembers.map((member, index) => `
+               <li style="margin-bottom: 3px; font-size: 12px;">
+                 <a href="#" class="member-link" data-original-path="${members[index]}" 
+                    style="color: #4a90e2; text-decoration: none; cursor: pointer;"
+                    onmouseover="this.style.textDecoration='underline'" 
+                    onmouseout="this.style.textDecoration='none'"
+                    title="${members[index]}">
+                   ${getFilename(member)} <span style="color: #999; font-size: 11px;">(${member})</span>
+                 </a>
+               </li>
+             `).join('')}
+           </ul>
+         `;
+      } else if (memberCount > 0) {
+        membersHtml = `<p><strong>Member Count:</strong> ${memberCount}</p>`;
+      }
+
+      const details = `
+                <p><strong>ID:</strong> ${node.data('id')}</p>
+                <p><strong>Type:</strong> ${node.data('type')}</p>
+                <p><strong>Description:</strong> ${description}</p>
+                <p><strong>Size:</strong> ${node.data('size') || 'N/A'}</p>
+                <p><strong>Color:</strong> ${node.data('color') || 'Default'}</p>
+                ${membersHtml}
+                <p><strong>Connections:</strong> ${node.connectedEdges().length}</p>
+                <p><strong>Incoming:</strong> ${node.incomers().nodes().length}</p>
+                <p><strong>Outgoing:</strong> ${node.outgoers().nodes().length}</p>
+            `;
+      document.getElementById('elementDetails').innerHTML = details;
+    });
+
+    // Clear selection when clicking on background
+    cy.on('tap', function (evt) {
+      if (evt.target === cy) {
+        cy.elements().unselect();
+        document.getElementById('selectedElement').textContent = 'None';
+        document.getElementById('elementInfoTitle').textContent = 'Element Information';
+        document.getElementById('elementDetails').innerHTML = 'Click on a node or edge to see details...';
+      }
+    });
+
+    // Handle member link clicks (delegated event)
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('member-link')) {
+        e.preventDefault();
+        const filePath = e.target.getAttribute('data-original-path');
+        const filename = filePath.split('/').pop();
+
+        // Find and select the corresponding node if it exists
+        const fileNode = cy.nodes().filter(node =>
+          node.data('id') === filePath ||
+          node.data('filePath') === filePath ||
+          node.data('label') === filename
+        );
+
+        if (fileNode.length > 0) {
+          // Select and center on the file node
+          cy.nodes().unselect();
+          fileNode.select();
+          cy.animate({
+            center: { eles: fileNode },
+            zoom: 2,
+            duration: 500
+          });
+
+          // Update sidebar with file node details
+          document.getElementById('selectedElement').textContent = `Node: ${fileNode.data('label')}`;
+          document.getElementById('elementInfoTitle').textContent = 'Node Information';
+          const details = `
+            <p><strong>File:</strong> ${filename}</p>
+            <p><strong>Full Path:</strong> ${filePath}</p>
+            <p><strong>Type:</strong> ${fileNode.data('type') || 'file'}</p>
+            <p><strong>Connections:</strong> ${fileNode.connectedEdges().length}</p>
+          `;
+          document.getElementById('elementDetails').innerHTML = details;
+        } else {
+          // Show message if file node not found
+          alert(`File node not found in graph: ${filename}\nPath: ${filePath}`);
+        }
+      }
+    });
+
+    // Control handlers
+    document.getElementById('layout').addEventListener('change', function (e) {
+      cy.layout({
+        name: e.target.value,
+        animate: true,
+        animationDuration: 1000
+      }).run();
+    });
+
+    document.getElementById('nodeSize').addEventListener('change', function (e) {
+      if (e.target.value === 'degree') {
+        cy.nodes().style('width', function (node) {
+          return 20 + node.connectedEdges().length * 5;
+        }).style('height', function (node) {
+          return 20 + node.connectedEdges().length * 5;
+        });
+      } else {
+        cy.nodes().style('width', function (node) {
+          return node.data('size') || 30;
+        }).style('height', function (node) {
+          return node.data('size') || 30;
+        });
+      }
+    });
+
+    document.getElementById('edgeStyle').addEventListener('change', function (e) {
+      cy.edges().style('curve-style', e.target.value);
+    });
+
+    document.getElementById('resetView').addEventListener('click', function () {
+      cy.fit().center();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      const png = cy.png({ full: true, scale: 2 });
+      const link = document.createElement('a');
+      link.download = 'codebase-graph.png';
+      link.href = png;
+      link.click();
+    });
+
+    // Initial statistics update
+    updateStatistics();
+  </script>
+</body>
+
+</html>
